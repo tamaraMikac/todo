@@ -1,6 +1,21 @@
-const express = require("express");
-const app = express.Router();
 
-const conn = mysql.createConnection({
-    
+const {Pool} = require("pg");
+
+const pool = new Pool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT,
 })
+
+pool.connect((err,client, release) =>{
+if(err){
+    console.log("ERROR: ", err.message);
+    return;
+}
+    console.log("Connection established");
+    release();
+});
+
+module.exports=pool;

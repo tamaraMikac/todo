@@ -1,4 +1,4 @@
 const express = require("express");
-const list = express.Router();
+const lists = express.Router();
 
-module.exports=list;
+module.exports=lists;
