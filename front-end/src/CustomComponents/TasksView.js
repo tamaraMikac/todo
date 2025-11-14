@@ -67,6 +67,33 @@ class TasksView extends Component {
           >
             Add new task
           </a>
+          <div className="min-vh-70 justify-content-center  align-items-center">
+            <input
+              type="text"
+              className="form-control mt-5"
+              placeholder="Example"
+              style={{
+                backgroundColor: "pink",
+                width: 650,
+                height: 40,
+                boxShadow: "1px 5px 10px rgba(255,182,193,0.6)",
+                color: "#a14c6c",
+              }}
+            />
+
+            <input
+              type="checkbox"
+              className="form-control ml-5"
+              style={{
+                height: 40,
+                width: 50,
+                marginLeft: 700,
+                marginTop: -40,
+                boxShadow: "1px 5px 10px rgba(255,182,193,0.6)",
+                color: "#a14c6c",
+              }}
+            />
+          </div>
         </div>
       </>
     );
