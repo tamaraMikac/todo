@@ -25,4 +25,19 @@ lists.post("/", async (req,res) => {
     }
 });
 
+lists.delete("/:id", async (req,res) => {
+    try {
+        const deleted = await db.deleteList(req.params.id);
+
+        if(!deleted) {
+            res.status(404).json({error: "Lista ni najdena."});
+        }
+        
+        res.json({message:"Lista ni najdena.", deleted});
+    } catch(err) {
+        console.error("Napaka pri brisanju liste:", err);
+        res.status(500).json({error: "Napaka.strežnika"});
+    }
+})
+
 module.exports=lists;

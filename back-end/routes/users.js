@@ -38,5 +38,63 @@ users.post("/", async (req, res) => {
     }
 });
 
+users.post("/login", async (req,res) => {
+    try {
+        const exist = await db.getUserByEmail(email);
+
+        if(!exist){
+            res.status(404).json({ error: "Uporabnik ne obstaja."});
+        }
+
+        if(exist.password !== password){
+            res.status(401).json({error: "Napačno geslo."})
+        }
+
+       res.cookie("sessionUser", exist.id, {
+        httpOnly:true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000
+       })
+
+        res.json({ message: "Prijava uspešna."})
+
+
+    } catch (err) {
+        console.error("Napaka pri prijavi uporabnika",err)
+        res.status(500).json("Napaka strežnika.");
+    }
+})
+
+
+users.post("/register", async (req,res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        const existing = await db.getUserByEmail(email);
+
+        if(existing) {
+            res.status(400).json({ error: "Email je že zaseden"});
+        }
+
+        const newUser = await db.createUser(username, email, password);
+
+        res.cookie("sessionUser", newUser.id, {
+            httpOnly:true,
+            secure:false,
+            sameSite:lax,
+            maxAge: 24*60*60*1000
+        });
+
+        res.status(201).json({
+            message: "Registracija uspešna.",
+            user: newUser
+        });
+
+    } catch(err) {
+        console.error("Napaka pri registracija uporabnika:", err);
+        res.status(500).json({ error: "Napaka strežnika."})
+    }
+});
 
 module.exports=users;
