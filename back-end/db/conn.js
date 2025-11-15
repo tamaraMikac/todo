@@ -32,6 +32,12 @@ const result = await pool.query("SELECT * FROM users WHERE email = $1", [email])
 return result.rows[0]
 }
 
+//PRIDOBI VSE UPORABNIKE BY EMAIL
+async function getUserById(id) {
+const result = await pool.query("SELECT * FROM users WHERE id= $1", [id])
+return result.rows[0]
+}
+
 //USTVARI NOVEGA UPORABNIKA
 async function createUser(username, email, password) {
     const results = await pool.query("INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *", [username, email, password]);
