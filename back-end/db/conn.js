@@ -39,8 +39,8 @@ return result.rows[0]
 }
 
 //USTVARI NOVEGA UPORABNIKA
-async function createUser(username, email, password) {
-    const results = await pool.query("INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *", [username, email, password]);
+async function createUser( email, password, firstName, lastName) {
+    const results = await pool.query("INSERT INTO users (email, password, firstName, lastName) VALUES ($1, $2, $3, $4) RETURNING *", [ email, password,  firstName, lastName]);
     return results.rows[0];
 }
 

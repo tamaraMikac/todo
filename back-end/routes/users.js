@@ -12,26 +12,6 @@ users.get("/", async (req, res) => {
     }});
 
 
-users.get("/:id", async (req, res) => {
-   const id = Number(req.params.id);
-
-  // ako id NIJE broj, odmah vrati grešku / 404
-  if (!Number.isInteger(id)) {
-    return res.status(400).json({ error: "Neveljaven ID." });
-    // ili: return res.status(404).json({ error: "Uporabnik ni bil najden." });
-  }
-    try {
-        const user = await db.getUserById(req.params.id);
-
-        if(!user){
-            res.status(404).json({error: "Uporabnik ni bil najden."})
-        }
-    res.json(user);
-    } catch(err) {
-        console.error("Napaka pri pridobivanju uporabnika:", err);
-        res.status(500).json({error: "Napaka strežnika."})
-    }
-});
 
 users.get("/login", (req, res) => {
   if (req.session && req.session.user) {
@@ -48,17 +28,6 @@ users.get("/login", (req, res) => {
 });
 
 
-users.post("/", async (req, res) => {
-    try {
-       const { email, password } = req.body;
-     console.log("LOGIN ROUTE HIT:", email, password); 
-        const newuser = await db.createUser(username, email, password);
-        res.status(201).json(newuser)
-    } catch (err) {
-        console.error("Napaka pri ustvarjanju uporabnika", err);
-        res.status(500).json({error: "Napaka strežnika."})
-    }
-});
 
 users.post("/login", async (req, res) => {
   try {
@@ -96,7 +65,7 @@ users.post("/login", async (req, res) => {
 
 users.post("/register", async (req,res) => {
     try {
-        const { username, email, password } = req.body;
+        const { email, password, firstName, lastName } = req.body;
 
         const existing = await db.getUserByEmail(email);
 
@@ -104,7 +73,7 @@ users.post("/register", async (req,res) => {
             res.status(400).json({ error: "Email je že zaseden"});
         }
 
-        const newUser = await db.createUser(username, email, password);
+        const newUser = await db.createUser( email, password, firstName, lastName);
 
         res.cookie("sessionUser", newUser.id, {
             httpOnly:true,
@@ -123,5 +92,28 @@ users.post("/register", async (req,res) => {
         res.status(500).json({ error: "Napaka strežnika."})
     }
 });
+
+
+users.get("/:id", async (req, res) => {
+   const id = Number(req.params.id);
+
+  // ako id NIJE broj, odmah vrati grešku / 404
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "Neveljaven ID." });
+    // ili: return res.status(404).json({ error: "Uporabnik ni bil najden." });
+  }
+    try {
+        const user = await db.getUserById(req.params.id);
+
+        if(!user){
+            res.status(404).json({error: "Uporabnik ni bil najden."})
+        }
+    res.json(user);
+    } catch(err) {
+        console.error("Napaka pri pridobivanju uporabnika:", err);
+        res.status(500).json({error: "Napaka strežnika."})
+    }
+});
+
 
 module.exports=users;

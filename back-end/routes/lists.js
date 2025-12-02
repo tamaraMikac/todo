@@ -36,7 +36,7 @@ lists.delete("/:id", async (req,res) => {
         res.json({message:"Lista ni najdena.", deleted});
     } catch(err) {
         console.error("Napaka pri brisanju liste:", err);
-        res.status(500).json({error: "Napaka.strežnika"});
+        res.status(500).json({error: "Napaka.strežnika"})
     }
 })
 
