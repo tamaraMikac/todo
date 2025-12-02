@@ -86,6 +86,7 @@ module.exports={
     getLists,
     getTask,
     getUserByEmail,
+    getUserById,
     getUsers,
     createList,
     createTask,

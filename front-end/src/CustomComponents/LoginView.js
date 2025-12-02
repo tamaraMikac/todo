@@ -1,6 +1,42 @@
 import { Component } from "react";
+import { Link } from "react-router-dom";
 import slika from "../images/slika2.png";
+import axios from "axios";
+import { API_URL } from "../Utils/Configuration";
+
 class LoginView extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { email: "", password:"", error: "" }
+  }
+
+  handleLogin = async () => {
+  try {
+        console.log("API_URL =", API_URL);
+    const response = await axios.post(`${API_URL}/users/login`,  {
+        email: this.state.email,
+        password: this.state.password,
+      },
+      {
+        withCredentials: true
+      }
+    );
+
+   console.log("LOGIN OK: ", response.data);
+   this.setState({error:""});
+   window.location.href="/lists";
+  }catch (err) {
+    console.error("Login error: ", err);
+    if(err.response) {
+      this.setState({
+       error: err.response.data?.error || "Napaka strežnika."
+        });
+      } else {
+        this.setState({ error: "Napaka omrežja (strežnik nedostopen)." });
+      }
+    }
+  };
+
   render() {
     return (
       <div
@@ -47,6 +83,8 @@ class LoginView extends Component {
                 type="email"
                 className="form-control"
                 placeholder="Enter your email"
+                value={this.state.email}
+                onChange={(e) => this.setState({email: e.target.value})}
                 required
               />
             </div>
@@ -62,12 +100,15 @@ class LoginView extends Component {
                 type="password"
                 className="form-control"
                 placeholder="Enter your password"
+                value={this.state.password}
+                onChange={(e) => this.setState({password: e.target.value})}
                 required
               />
             </div>
 
             <button
               type="button"
+              onClick={this.handleLogin}
               className="btn w-100 fw-bold"
               style={{
                 background: "#F7C6D9",
@@ -81,7 +122,7 @@ class LoginView extends Component {
               Log in{" "}
             </button>
 
-            <p className="mt-4 text-center">
+            <div className="mt-4 text-center">
               <span className="text-muted" style={{ color: "#4A2E3D" }}>
                 {" "}
                 Don't have an account?{" "}
@@ -93,9 +134,11 @@ class LoginView extends Component {
                   fontWeight: "500",
                 }}
               >
+                <Link to="/signup">
                 Register here
+                </Link>
               </div>
-            </p>
+            </div>
           </form>
         </div>
       </div>
