@@ -6,41 +6,80 @@ class ListsView extends Component {
     title: "",
     dueDate: "",
     lists: [],
+  };
+
+
+componentDidMount() {
+  this.fetchLists();
+}
+
+fetchLists = async () => {
+  try {
+    const res = await fetch("http://localhost:5013/lists");
+    const data = await res.json();
+      this.setState({ lists: Array.isArray(data) ? data : data.lists });
+  } catch (error) {
+    console.error("Error fetching lists:", error)
   }
+};
 
- handleOpenForm = (e) => {
- e.preventDefault();
- this.setState({ showForm: true});
- }
+  handleOpenForm = (e) => {
+    e.preventDefault();
+    this.setState({ showForm: true });
+  };
 
- handleChange = (e) => {
-  this.setState({
-  [e.target.name]: e.target.value,
-  });
- }
+  handleChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
 
- handleAddList = (e) => {
-  e.preventDefault();
- 
+  handleAddList = async (e) => {
+    e.preventDefault();
 
- if (!this.state.title.trim()) return;
+    if (!this.state.title.trim()) return;
 
- const newList = {
-  id: Date.now(),
-  title: this.state.title,
- };
+    try{
+      const res = await fetch("http://localhost:5013/lists", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", },
+        body: JSON.stringify({
+          title: this.state.title,
+        }),
+    });
 
- this.setState((prev) => ({
-lists: [...prev.lists, newList],
-title: "",
-showForm:false,
- }));
- };
+    const newList = await res.json();
+
+    this.setState((prev) => ({
+      lists: [...prev.lists, newList],
+      title: "",
+      showForm: false,
+    }));
+  } catch (error) {
+    console.error("Error adding list:", error);
+  }
+  };
+
+  handleDeleteList = async (id) => {
+    try {
+      await fetch(`http://localhost:5013/lists/${id}`, {
+        method:"DELETE",
+      });
+
+      this.setState((prev) => ({
+        lists: prev.lists.filter((list) => list.id !== id),
+      }));
+    } catch (error) {
+      console.error("Error deleting list:", error);
+    }
+  };
 
   render() {
-    const {showForm, title, lists} = this.state;
+    const { showForm, title, lists } = this.state;
+
     return (
       <>
+        {/* NAVBAR */}
         <nav
           className="navbar navbar-expand-lg"
           style={{
@@ -52,43 +91,41 @@ showForm:false,
           }}
         >
           <div className="container-fluid px-4 justify-content-between align-items-center">
-            <a
-              className="navbar-brand text-back fw-bold"
-              href="#"
+            <span
+              className="navbar-brand fw-bold"
               style={{
-                fontWeight: "700",
                 color: "#a14c6c",
                 fontSize: "1.5rem",
                 letterSpacing: "1px",
               }}
             >
-              🌸 To-do{" "}
-            </a>
-            <div className="d-flex gap-2">
-              <a
-                className="btn"
-                onClick={this.handleOpenForm}
-                style={{
-                  backgroundColor: "#fffa",
-                  padding: "8px 20px",
-                  border: "none",
-                  borderRadius: "20px",
-                  color: "#a14c6c",
-                  fontWeight: "bold",
-                  boxShadow: "0px 2px 8px rgba(255,182,193,0.6)",
-                }}
-              >
-                {" "}
-                Create new to-do list ➕
-              </a>
-            </div>
+              🌸 To-do
+            </span>
+
+            <button
+              className="btn"
+              onClick={this.handleOpenForm}
+              style={{
+                backgroundColor: "#fffa",
+                padding: "8px 20px",
+                border: "none",
+                borderRadius: "20px",
+                color: "#a14c6c",
+                fontWeight: "bold",
+                boxShadow: "0px 2px 8px rgba(255,182,193,0.6)",
+              }}
+            >
+              Create new to-do list ➕
+            </button>
           </div>
         </nav>
+
         <div
-          className="min-vh-100 d-flex flex-column align-items-center justify-content-start pt-5"
+          className="min-vh-100 d-flex flex-column align-items-center pt-5"
           style={{ backgroundColor: "#fff" }}
         >
           <div style={{ fontSize: "5rem", marginBottom: "10px" }}>🌸</div>
+
           <h1
             style={{
               fontSize: "3.8rem",
@@ -98,99 +135,71 @@ showForm:false,
               letterSpacing: "3px",
             }}
           >
-            {" "}
             YOUR TO-DO LISTS
           </h1>
 
           <p
             style={{
-              color: "d7a6b8",
+              color: "#d7a6b8",
               fontSize: "1.2rem",
               marginBottom: "40px",
             }}
           >
-            {" "}
-            Stay organized.{" "}
+            Stay organized.
           </p>
 
-
-          { showForm && (
-            <div
-            style={{
-              backgroundColor:"#fff6fa",
-              borderRadius:"20px",
-              padding: "20px 25px",
-              boxShadow: "0px 4px 12px rgba(255,182,193,0.5)",
-              maxWidth:"400px",
-              width:"100%",
-              marginBottom:"30px"
-            }}
-            >
-            <h3 style={{ color: "#a14c6c", marginBottom: "15px" }}>New list</h3>
-
-            <form onSubmit={this.handleAddList}>
-               <div className="mb-3">
-                  <label className="form-label" style={{ color: "#a14c6c" }}>
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    className="form-control"
-                    placeholder="ex. Shopping list"
-                    value={title}
-                    onChange={this.handleChange}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn"
-                  style={{
-                    backgroundColor: "#ffbfd4",
-                    border: "none",
-                    borderRadius: "20px",
-                    padding: "8px 20px",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                >
-                  Add list
-                </button>
-              </form>
-            </div>
+          {/* FORM */}
+          {showForm && (
+            <form onSubmit={this.handleAddList} style={{ maxWidth: "400px" }}>
+              <input
+                type="text"
+                name="title"
+                className="form-control mb-3"
+                placeholder="e.g. Shopping list"
+                value={title}
+                onChange={this.handleChange}
+              />
+              <button className="btn btn-pink w-100">Add list</button>
+            </form>
           )}
 
-          <div className="container">
+          {/* LISTS */}
+          <div className="container mt-4">
             <div className="row g-3 justify-content-center">
               {lists.map((list) => (
                 <div
-                key={list.id}
-                className="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div
+                  key={list.id}
+                  className="col-12 col-sm-6 col-md-4 col-lg-3"
+                >
+                  <div
                     style={{
                       backgroundColor: "#fff6fa",
                       borderRadius: "16px",
-                      padding: "15px 18px",
-                      boxShadow: "0px 3px 10px rgba(255,182,193,0.4)",
+                      padding: "15px",
                     }}
                   >
-                    <h5 style={{ color: "#a14c6c", fontWeight: "600" }}>
-                      {list.title}
-                    </h5>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <h5 style={{ margin: 0 }}>{list.title}</h5>
+                      <button
+                        className="btn"
+                        onClick={() =>
+                          this.handleDeleteList(list.id)
+                        }
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
 
               {lists.length === 0 && (
-                <p style={{ color: "#d7a6b8", marginTop: "10px" }}>
-  You don’t have any lists yet. Create one above. 🌸
+                <p style={{ color: "#d7a6b8" }}>
+                  You don’t have any lists yet. Create one above. 🌸
                 </p>
               )}
             </div>
           </div>
-
         </div>
       </>
     );

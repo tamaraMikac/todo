@@ -4,7 +4,7 @@ const db = require("../db/conn");
 
 lists.get("/", async (req,res) => {
     try {
-        const list = await db.getTasks();
+        const list = await db.getTask();
         res.json(list);
     } catch(err) {
         console.error("Napaka pri pridobivanju list", err);
