@@ -11,7 +11,7 @@ function App() {
    <Routes>
     <Route path ="/" element={<LoginView />} />
     <Route path="/signup" element={<SignupView />} />
-    <Route path="/tasks" element={<TasksView />} />
+    <Route path="/tasks/:listId" element={<TasksView />} />
     <Route path="/lists" element={<ListsView />} />
 
 

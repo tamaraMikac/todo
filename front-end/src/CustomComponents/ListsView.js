@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { Link } from "react-router-dom";
 
 class ListsView extends Component {
   state = {
@@ -15,13 +16,22 @@ componentDidMount() {
 
 fetchLists = async () => {
   try {
-    const res = await fetch("http://localhost:5013/lists");
+    const res = await fetch("http://localhost:5013/lists", {
+      credentials: "include",
+    });
+
+    if (res.status === 401) {
+      this.setState({ lists: [] }); 
+      return;
+    }
+
     const data = await res.json();
-      this.setState({ lists: Array.isArray(data) ? data : data.lists });
+    this.setState({ lists: Array.isArray(data) ? data : data.lists });
   } catch (error) {
-    console.error("Error fetching lists:", error)
+    console.error("Error fetching lists:", error);
   }
 };
+
 
   handleOpenForm = (e) => {
     e.preventDefault();
@@ -43,6 +53,7 @@ fetchLists = async () => {
       const res = await fetch("http://localhost:5013/lists", {
         method: "POST",
         headers: {"Content-Type": "application/json", },
+          credentials: "include",
         body: JSON.stringify({
           title: this.state.title,
         }),
@@ -64,6 +75,7 @@ fetchLists = async () => {
     try {
       await fetch(`http://localhost:5013/lists/${id}`, {
         method:"DELETE",
+        credentials: "include",
       });
 
       this.setState((prev) => ({
@@ -179,7 +191,9 @@ fetchLists = async () => {
                     }}
                   >
                     <div className="d-flex justify-content-between align-items-center">
-                      <h5 style={{ margin: 0 }}>{list.title}</h5>
+<Link to={`/tasks/${list.id}`} style={{ margin: 0, color: "#a14c6c", textDecoration: "none" }}>
+  {list.title}
+</Link>
                       <button
                         className="btn"
                         onClick={() =>

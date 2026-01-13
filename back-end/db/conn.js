@@ -51,12 +51,14 @@ async function getTask() {
     }
 
 //USTVARI NOVO NALOGO
-async function createTask(title, description, due_date, priority, status) {
-    const results = await pool.query("INSERT INTO tasks (title, description, due_date, priority, status) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-        [title, description, due_date, priority, status] 
-    );
-    return results.rows[0];
+async function createTask(title, description, due_date, priority, status, list_id) {
+  const results = await pool.query(
+    "INSERT INTO tasks (title, description, due_date, priority, status, list_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+    [title, description, due_date, priority, status, list_id]
+  );
+  return results.rows[0];
 }
+
 
 //IZBRIŠI TASK
 async function deleteTask(id){
@@ -71,8 +73,8 @@ async function getLists() {
 }
 
 //DODAJ NOVO LISTO
-async function createList(title) {
-    const results = await pool.query("INSERT INTO lists (title) VALUES ($1) RETURNING *", [title]);
+async function createList(title, userId) {
+    const results = await pool.query("INSERT INTO lists (title, user_id) VALUES ($1, $2) RETURNING *", [title, userId]);
     return results.rows[0];
 }
 
@@ -81,8 +83,43 @@ async function deleteList(id) {
     const results = await pool.query("DELETE FROM lists WHERE id = $1 RETURNING *", [id]);
     return results.rows[0];
 }
+
+//PRIDOBI LISTO BY USER-ID
+
+async function getListbyUser(userId){
+    const results = await pool.query("SELECT * FROM lists WHERE user_id = $1 ORDER BY id ASC", [userId]);
+    return results.rows;
+}
+
+async function updateTaskStatus(id, status) {
+  const result = await pool.query(
+    "UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *",
+    [status, id]
+  );
+  return result.rows[0];
+}
+
+async function deleteListForUser(listId, userId) {
+  const results = await pool.query(
+    "DELETE FROM lists WHERE id = $1 AND user_id = $2 RETURNING *",
+    [listId, userId]
+  );
+  return results.rows[0];
+}
+async function getTasksByList(listId) {
+  const results = await pool.query(
+    "SELECT * FROM tasks WHERE list_id = $1 ORDER BY id ASC",
+    [listId]
+  );
+  return results.rows;
+}
+
+
 module.exports={
     pool,
+    updateTaskStatus,
+    getTasksByList,
+    deleteListForUser,
     getLists,
     getTask,
     getUserByEmail,
@@ -92,5 +129,6 @@ module.exports={
     createTask,
     createUser,
     deleteList,
-    deleteTask
+    deleteTask,
+    getListbyUser
 };

@@ -1,6 +1,86 @@
-import { Component } from "react";
+import React, { Component } from "react";
+import { useParams } from "react-router-dom";
+
+function withParams(Wrapped) {
+  return function (props) {
+    const params = useParams();
+    return <Wrapped {...props} params={params} />;
+  };
+}
 
 class TasksView extends Component {
+  state = {
+    newTask: "",
+    tasks: [],
+  };
+
+  componentDidMount() {
+    this.fetchTasks();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.params.listId !== this.props.params.listId) {
+      this.fetchTasks();
+    }
+  }
+
+  fetchTasks = () => {
+    const { listId } = this.props.params;
+
+    fetch(`http://localhost:5013/tasks?listId=${listId}`, {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => this.setState({ tasks: data }))
+      .catch((err) => console.error(err));
+  };
+
+  handleAddTask = () => {
+    const { listId } = this.props.params;
+
+    if (!this.state.newTask.trim()) return;
+
+    fetch("http://localhost:5013/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        title: this.state.newTask,
+        description: "",
+        due_date: null,
+        priority: "normal",
+        status: false,
+        list_id: Number(listId), // ⬅️ KLJUČNO
+      }),
+    })
+      .then((res) => res.json())
+      .then((newTask) => {
+        this.setState({
+          tasks: [...this.state.tasks, newTask],
+          newTask: "",
+        });
+      })
+      .catch((err) => console.error(err));
+  };
+
+  toggleDone = (task) => {
+    fetch(`http://localhost:5013/tasks/${task.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ status: !task.status }),
+    })
+      .then((res) => res.json())
+      .then((updatedTask) => {
+        this.setState({
+          tasks: this.state.tasks.map((t) =>
+            t.id === updatedTask.id ? updatedTask : t
+          ),
+        });
+      })
+      .catch((err) => console.error(err));
+  };
+
   render() {
     return (
       <>
@@ -14,51 +94,23 @@ class TasksView extends Component {
             zIndex: 10,
           }}
         >
-          <div className="container-fluid px-4 justify-content-between align-items-center">
-            <a
-              className="navbar-brand text-back fw-bold"
-              href="#"
-              style={{
-                fontWeight: "700",
-                color: "#a14c6c",
-                fontSize: "1.5rem",
-                letterSpacing: "1px",
-              }}
-            >
-              🌸 To-do{" "}
-            </a>
-            <div className="d-flex gap-2">
-              <a
-                className="btn"
-                href="#"
-                style={{
-                  backgroundColor: "#fffa",
-                  padding: "8px 20px",
-                  border: "none",
-                  borderRadius: "20px",
-                  color: "#a14c6c",
-                  fontWeight: "bold",
-                  boxShadow: "0px 2px 8px rgba(255,182,193,0.6)",
-                }}
-              >
-                {" "}
-                My to-do lists 📃
-              </a>
-            </div>
-          </div>
+          <span
+            className="navbar-brand fw-bold"
+            style={{ color: "#a14c6c", fontSize: "1.5rem" }}
+          >
+            🌸 To-do
+          </span>
         </nav>
-        <div
-          className="min-vh-100 d-flex flex-column align-items-center justify-content-start pt-5"
-          style={{ backgroundColor: "#fff" }}
-        >
+
+        <div className="min-vh-100 d-flex flex-column align-items-center pt-5">
           <div style={{ fontSize: "5rem", marginBottom: "10px" }}>🌸</div>
-          <a
+
+          <button
             className="btn"
-            href="#"
+            onClick={this.handleAddTask}
             style={{
               backgroundColor: "#fffa",
               padding: "8px 20px",
-              border: "none",
               borderRadius: "20px",
               fontWeight: "bold",
               boxShadow: "0px 2px 8px rgba(255,182,193,0.6)",
@@ -66,38 +118,66 @@ class TasksView extends Component {
             }}
           >
             Add new task
-          </a>
-          <div className="min-vh-70 justify-content-center  align-items-center">
-            <input
-              type="text"
-              className="form-control mt-5"
-              placeholder="Example"
-              style={{
-                backgroundColor: "pink",
-                width: 650,
-                height: 40,
-                boxShadow: "1px 5px 10px rgba(255,182,193,0.6)",
-                color: "#a14c6c",
-              }}
-            />
+          </button>
 
-            <input
-              type="checkbox"
-              className="form-control ml-5"
-              style={{
-                height: 40,
-                width: 50,
-                marginLeft: 700,
-                marginTop: -40,
-                boxShadow: "1px 5px 10px rgba(255,182,193,0.6)",
-                color: "#a14c6c",
-              }}
-            />
-          </div>
+          <input
+            type="text"
+            className="form-control mt-4"
+            placeholder="New task..."
+            value={this.state.newTask}
+            onChange={(e) => this.setState({ newTask: e.target.value })}
+            style={{
+              backgroundColor: "pink",
+              width: 650,
+              height: 40,
+              boxShadow: "1px 5px 10px rgba(255,182,193,0.6)",
+              color: "#a14c6c",
+            }}
+          />
+
+          {this.state.tasks.map((task) => (
+            <div
+              key={task.id}
+              className="d-flex align-items-center mt-4"
+              style={{ width: 650 }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  padding: "8px 15px",
+                  borderRadius: "8px",
+                  backgroundColor: task.status ? "#d4edda" : "#ffc0cb",
+                  color: task.status ? "#155724" : "#a14c6c",
+                  textDecoration: task.status ? "line-through" : "none",
+                  boxShadow: "1px 5px 10px rgba(255,182,193,0.6)",
+                }}
+              >
+                {task.title}
+              </div>
+
+              <input
+                type="checkbox"
+                checked={task.status}
+                onChange={() => this.toggleDone(task)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  marginLeft: 15,
+                  cursor: "pointer",
+                }}
+              />
+            </div>
+          ))}
+
+          {this.state.tasks.length === 0 && (
+            <p style={{ marginTop: 30, color: "#a14c6c" }}>
+              No tasks in this list 🌸
+            </p>
+          )}
         </div>
       </>
     );
   }
 }
 
-export default TasksView;
+export default withParams(TasksView);

@@ -13,19 +13,17 @@ users.get("/", async (req, res) => {
 
 
 
-users.get("/login", (req, res) => {
-  if (req.session && req.session.user) {
-    const u = req.session.user;
-    return res.json({
-      logged: true,
-      id: u.uporabnik_id,
-      email: u.email,
-      username: u.username,
-      is_admin: !!u.is_admin,
-    });
-  }
-  res.json({ logged: false });
+users.get("/login", async (req, res) => {
+  const userId = req.cookies?.sessionUser;
+
+  if (!userId) return res.json({ logged: false });
+
+  const user = await db.getUserById(userId);
+  if (!user) return res.json({ logged: false });
+
+  res.json({ logged: true, id: user.id, email: user.email });
 });
+
 
 
 
